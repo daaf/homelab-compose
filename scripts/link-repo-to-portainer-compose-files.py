@@ -3,10 +3,10 @@
 from os import listdir, path
 from decouple import config
 from subprocess import run
-from utils import bytes_to_ascii, bytes_to_ascii_list, create_dir_if_not_extant
+from utils import bytes_to_ascii_list, create_dir_if_not_extant
 
 
-stacks =  {
+STACKS =  {
     'network-stack': ['duckdns', 'pihole-unbound'],
     'grafana-stack': ['telegraf', 'influxdb', 'chronograf',  'grafana'],
     'heimdall-stack': ['heimdall'],
@@ -25,8 +25,8 @@ def get_app_name_from_compose_file(compose_file):
 
 
 def get_stack_name_from_app_name(app):
-    for stack in stacks:
-        if app in stacks[stack]:
+    for stack in STACKS:
+        if app in STACKS[stack]:
             return stack
 
 
@@ -38,33 +38,38 @@ def print_output(output):
             print(stderr)
 
 
-def link_compose_files(compose_file):
+def link_compose_file(dir, compose_file):
     output = []
 
-    if not path.exists(linked_compose_file):
+    link_path = f'{dir}/docker-compose.yml'
+
+    if not path.exists(link_path):
         process = run([
             'sudo',
             'ln',
             compose_file,
-            linked_compose_file
+            link_path
         ],
         capture_output=True)
 
-        process_output = bytes_to_ascii_list(stdout, stderr)
+        process_output = bytes_to_ascii_list(process.stdout, process.stderr)
         output.append(process_output)
         
     return output
 
 
-rootdir = config('PORTAINER_COMPOSE_DIR')
-local_repo = config('HOMELAB_COMPOSE_REPO')
+def link_compose_files(portainer_compose_dir, linked_dir):
+    for subdir in listdir(portainer_compose_dir):
+        compose_file = f'{portainer_compose_dir}/{subdir}/docker-compose.yml'
+        app_name = get_app_name_from_compose_file(compose_file)
+        stack_name = get_stack_name_from_app_name(app_name)
+        stack_dir = f'{linked_dir}/{stack_name}'
+        create_dir_if_not_extant(stack_dir)
+        output = link_compose_file(stack_dir, compose_file)
+        print_output(output)
 
-for subdir in listdir(rootdir):
-    compose_file = f'{rootdir}/{subdir}/docker-compose.yml'
-    app_name = get_app_name_from_compose_file(compose_file)
-    stack_name = get_stack_name_from_app_name(app_name)
-    stack_dir = f'{local_repo}/{stack_name}'
-    create_dir_if_not_extant(stack_dir)
-    linked_compose_file = f'{stack_dir}/docker-compose.yml'
-    output = link_compose_files(linked_compose_file)
-    print_output(output)
+
+if __name__ == "__main__":
+    portainer_compose_dir = config('PORTAINER_COMPOSE_DIR')
+    local_repo = config('HOMELAB_COMPOSE_REPO')
+    link_compose_files(portainer_compose_dir, local_repo)
