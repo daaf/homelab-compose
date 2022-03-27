@@ -1,2 +1,4 @@
 **/.env
 .gitsecret/keys/random_seed
+.venv/
+__pycache__/
