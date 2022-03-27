@@ -1,4 +1,4 @@
-#!/usr/bin/sudo /usr/bin/python3
+#!/usr/bin/sudo /usr/bin/env python
 
 from os import listdir, path
 from decouple import config
@@ -59,14 +59,12 @@ def link_compose_files(compose_file):
 rootdir = config('PORTAINER_COMPOSE_DIR')
 local_repo = config('HOMELAB_COMPOSE_REPO')
 
-# for subdir in listdir(rootdir):
-#     compose_file = f'{rootdir}/{subdir}/docker-compose.yml'
-#     app_name = get_app_name_from_compose_file(compose_file)
-#     stack_name = get_stack_name_from_app_name(app_name)
-#     stack_dir = f'{local_repo}/{stack_name}'
-#     create_dir_if_not_extant(stack_dir)
-#     linked_compose_file = f'{stack_dir}/docker-compose.yml'
-#     output = link_compose_files(linked_compose_file)
-#     print_output(output)
-
-print(rootdir, local_repo)
+for subdir in listdir(rootdir):
+    compose_file = f'{rootdir}/{subdir}/docker-compose.yml'
+    app_name = get_app_name_from_compose_file(compose_file)
+    stack_name = get_stack_name_from_app_name(app_name)
+    stack_dir = f'{local_repo}/{stack_name}'
+    create_dir_if_not_extant(stack_dir)
+    linked_compose_file = f'{stack_dir}/docker-compose.yml'
+    output = link_compose_files(linked_compose_file)
+    print_output(output)
