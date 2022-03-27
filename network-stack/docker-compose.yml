@@ -1,0 +1,30 @@
+services:
+  duckdns:
+    image: lscr.io/linuxserver/duckdns:arm32v7-latest
+    container_name: duckdns
+    environment:
+      - PUID=1000 #optional
+      - PGID=1000 #optional
+      - TZ=America/New_York
+      - SUBDOMAINS=${DUCKDNS_SUBDOMAIN}
+      - TOKEN=${DUCKDNS_TOKEN}
+      - LOG_FILE=true #optional
+    volumes:
+      - /home/user/appdata/duckdns:/config #optional
+    restart: unless-stopped
+  pihole-unbound:
+    image: cbcrowe/pihole-unbound:latest
+    container_name: pihole-unbound
+    ports:
+      - "53:53/tcp"
+      - "53:53/udp"
+      - "67:67/udp" # Only required if you are using Pi-hole as your DHCP server
+      - "80:80/tcp"
+    environment:
+      - TZ=America/New_York
+    dns:
+      - 127.0.0.1#5335
+    volumes:
+      - './etc-pihole:/etc/pihole'
+      - './etc-dnsmasq.d:/etc/dnsmasq.d'
+    restart: unless-stopped
