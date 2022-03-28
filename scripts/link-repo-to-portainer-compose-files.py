@@ -33,6 +33,8 @@ def link_compose_files(portainer_compose_dir, linked_dir):
         Portainer's data directory.
     :param linked_dir: The directory in which to create the links.
     """
+    new_link_count = 0
+
     for subdir in listdir(portainer_compose_dir):
         path_to_compose_file = f'{portainer_compose_dir}/{subdir}/docker-compose.yml'
         app_name = utils.get_compose_attribute_value(
@@ -40,13 +42,32 @@ def link_compose_files(portainer_compose_dir, linked_dir):
         stack_name = get_stack_name_from_app_name(app_name)
         path_to_stack_dir = f'{linked_dir}/{stack_name}'
 
+        print('-' * 80)
+        print(f'Checking for link to docker-compose.yml for {stack_name}.')
+
         if not path.exists(path_to_stack_dir):
             mkdir(path_to_stack_dir)
+            print(f'Created {path_to_stack_dir}')
+        else:
+            print(f'{path_to_stack_dir} already exists.')
 
         path_to_link = f'{path_to_stack_dir}/docker-compose.yml'
 
         if not path.exists(path_to_link):
+            new_link_count += 1
             link(path_to_compose_file, path_to_link)
+            print(f'Added link to {path_to_compose_file} in {path_to_link}.')
+        else:
+            print(f'{path_to_link} already exists.')
+
+        print('-' * 80)
+
+    if new_link_count > 1:
+        print(f'Created {new_link_count} new links to Compose files.')
+    elif new_link_count > 0:
+        print(f'Created 1 new link to Compose file.')
+    else:
+        print('Nothing to update.')
 
 
 if __name__ == '__main__':
