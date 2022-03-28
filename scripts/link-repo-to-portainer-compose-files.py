@@ -1,4 +1,4 @@
-#!/usr/bin/sudo /usr/bin/env python
+#!/usr/bin/env python
 
 import utils
 from os import listdir, mkdir, link, path
