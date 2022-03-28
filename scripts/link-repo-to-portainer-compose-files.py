@@ -1,9 +1,8 @@
 #!/usr/bin/sudo /usr/bin/env python
 
-from os import listdir, path
+import utils
+from os import listdir
 from decouple import config
-from subprocess import run
-from utils import bytes_to_ascii_list, create_dir_if_not_extant
 
 STACKS = {
     'network-stack': ['duckdns', 'pihole-unbound'],
@@ -14,56 +13,37 @@ STACKS = {
 }
 
 
-def get_compose_attribute_value(compose_file, keyword):
-    with open(compose_file) as file:
-        for line in file:
-            if keyword in line:
-                value = line.replace(f'{keyword}:', '').strip()
-                return value
-
-
 def get_stack_name_from_app_name(app):
+    """Search the STACKS dictionary for `app`. If `app` is found, 
+    return the name of the stack."""
     for stack in STACKS:
         if app in STACKS[stack]:
             return stack
 
 
-def print_output(output):
-    for stdout, stderr in output:
-        if stdout:
-            print(stdout)
-        if stderr:
-            print(stderr)
-
-
-def link_compose_file(dir, compose_file):
-    output = []
-    link_path = f'{dir}/docker-compose.yml'
-
-    if not path.exists(link_path):
-        process = run([
-            'sudo',
-            'ln',
-            compose_file,
-            link_path
-        ], capture_output=True)
-        process_output = bytes_to_ascii_list(process.stdout, process.stderr)
-        output.append(process_output)
-
-    return output
-
-
 def link_compose_files(portainer_compose_dir, linked_dir):
+    """
+    Iterate through the Docker Compose files in Portainer's data directory.
+    For each Compose file, create a subdirectory with the stack name in a 
+    second directory and, inside each stack directory, create links to the 
+    corresponding Compose file in Portainer's data directory.
+
+    :param portainer_compose_dir: The path to the `compose` directory inside 
+        Portainer's data directory.
+    :param linked_dir: The directory in which to create the links.
+    """
     for subdir in listdir(portainer_compose_dir):
-        compose_file = f'{portainer_compose_dir}/{subdir}/docker-compose.yml'
-        app_name = get_compose_attribute_value(compose_file, 'container_name')
+        path_to_compose_file = f'{portainer_compose_dir}/{subdir}/docker-compose.yml'
+        app_name = utils.get_compose_attribute_value(
+            path_to_compose_file, 'container_name')
         stack_name = get_stack_name_from_app_name(app_name)
         stack_dir = f'{linked_dir}/{stack_name}'
-        create_dir_if_not_extant(stack_dir)
+        utils.create_dir_if_not_extant(stack_dir)
+        path_to_link = f'{stack_dir}/docker-compose.yml'
 
         # Link the Compose files and assign the resulting stdout and stderr to `output`
-        output = link_compose_file(stack_dir, compose_file)
-        print_output(output)
+        ln_output = utils.ln(path_to_compose_file, path_to_link)
+        utils.print_process_output(ln_output)
 
 
 if __name__ == "__main__":
