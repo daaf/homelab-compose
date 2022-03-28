@@ -5,8 +5,7 @@ from decouple import config
 from subprocess import run
 from utils import bytes_to_ascii_list, create_dir_if_not_extant
 
-
-STACKS =  {
+STACKS = {
     'network-stack': ['duckdns', 'pihole-unbound'],
     'grafana-stack': ['telegraf', 'influxdb', 'chronograf',  'grafana'],
     'heimdall-stack': ['heimdall'],
@@ -15,13 +14,12 @@ STACKS =  {
 }
 
 
-def get_app_name_from_compose_file(compose_file):
-    keyword = 'container_name:'
+def get_compose_attribute_value(compose_file, keyword):
     with open(compose_file) as file:
         for line in file:
             if keyword in line:
-                app_name = line.replace(keyword, '').strip()
-    return app_name
+                value = line.replace(f'{keyword}:', '').strip()
+                return value
 
 
 def get_stack_name_from_app_name(app):
@@ -40,7 +38,6 @@ def print_output(output):
 
 def link_compose_file(dir, compose_file):
     output = []
-
     link_path = f'{dir}/docker-compose.yml'
 
     if not path.exists(link_path):
@@ -49,22 +46,22 @@ def link_compose_file(dir, compose_file):
             'ln',
             compose_file,
             link_path
-        ],
-        capture_output=True)
-
+        ], capture_output=True)
         process_output = bytes_to_ascii_list(process.stdout, process.stderr)
         output.append(process_output)
-        
+
     return output
 
 
 def link_compose_files(portainer_compose_dir, linked_dir):
     for subdir in listdir(portainer_compose_dir):
         compose_file = f'{portainer_compose_dir}/{subdir}/docker-compose.yml'
-        app_name = get_app_name_from_compose_file(compose_file)
+        app_name = get_compose_attribute_value(compose_file, 'container_name')
         stack_name = get_stack_name_from_app_name(app_name)
         stack_dir = f'{linked_dir}/{stack_name}'
         create_dir_if_not_extant(stack_dir)
+
+        # Link the Compose files and assign the resulting stdout and stderr to `output`
         output = link_compose_file(stack_dir, compose_file)
         print_output(output)
 
