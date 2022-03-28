@@ -1,7 +1,7 @@
 #!/usr/bin/sudo /usr/bin/env python
 
 import utils
-from os import listdir
+from os import listdir, mkdir, link, path
 from decouple import config
 
 STACKS = {
@@ -9,7 +9,8 @@ STACKS = {
     'grafana-stack': ['telegraf', 'influxdb', 'chronograf',  'grafana'],
     'heimdall-stack': ['heimdall'],
     'home-stack': ['grocy'],
-    'rss-stack': ['freshrss', 'mariadb']
+    'rss-stack': ['freshrss', 'mariadb'],
+    'test-stack': ['alpine']
 }
 
 
@@ -37,16 +38,18 @@ def link_compose_files(portainer_compose_dir, linked_dir):
         app_name = utils.get_compose_attribute_value(
             path_to_compose_file, 'container_name')
         stack_name = get_stack_name_from_app_name(app_name)
-        stack_dir = f'{linked_dir}/{stack_name}'
-        utils.create_dir_if_not_extant(stack_dir)
-        path_to_link = f'{stack_dir}/docker-compose.yml'
+        path_to_stack_dir = f'{linked_dir}/{stack_name}'
 
-        # Link the Compose files and assign the resulting stdout and stderr to `output`
-        ln_output = utils.ln(path_to_compose_file, path_to_link)
-        utils.print_process_output(ln_output)
+        if not path.exists(path_to_stack_dir):
+            mkdir(path_to_stack_dir)
+
+        path_to_link = f'{path_to_stack_dir}/docker-compose.yml'
+
+        if not path.exists(path_to_link):
+            link(path_to_compose_file, path_to_link)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     portainer_compose_dir = config('PORTAINER_COMPOSE_DIR')
     local_repo = config('HOMELAB_COMPOSE_REPO')
     link_compose_files(portainer_compose_dir, local_repo)
