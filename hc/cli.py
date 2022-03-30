@@ -20,7 +20,7 @@ from link_portainer_compose_files import link
 def init():
     args = docopt(__doc__, version="0.1")
     portainer_compose_dir = config("PORTAINER_COMPOSE_DIR")
-    local_repo = config("HOMELAB_COMPOSE_REPO")
+    local_repo = config("LINK_PARENT_DIR")
 
     if "link" in args:
         link(portainer_compose_dir, local_repo)
