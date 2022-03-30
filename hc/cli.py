@@ -9,8 +9,11 @@ Options:
     -h --help   Show this help documentation.
 """
 
+# Third party imports
 from docopt import docopt
 from decouple import config
+
+# Local imports
 from link_portainer_compose_files import link
 
 

@@ -2,8 +2,11 @@
 
 """Entry point for the hc script."""
 
-import cli
+# Third party imports
 from elevate import elevate
+
+# Local imports
+import cli
 
 
 def main():

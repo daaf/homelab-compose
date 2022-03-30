@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 
-from dockerutils import get_compose_attribute_value
+# Standard library imports
 from os import listdir, mkdir, link, path
+
+# Local imports
+from dockerutils import get_compose_attribute_value
 
 STACKS = {
     "network-stack": ["duckdns", "pihole-unbound"],
