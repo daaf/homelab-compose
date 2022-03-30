@@ -1,9 +1,13 @@
+#!/usr/bin/env python3
+
 """Entry point for the hc script."""
 
-from hc import cli
+import cli
+from elevate import elevate
 
 
 def main():
+    elevate()
     cli.init()
 
 
