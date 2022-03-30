@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 
-import utils
+from hc import dockerutils
 from os import listdir, mkdir, link, path
-from decouple import config
 
 STACKS = {
     'network-stack': ['duckdns', 'pihole-unbound'],
@@ -22,7 +21,7 @@ def get_stack_name_from_app_name(app):
             return stack
 
 
-def link_compose_files(portainer_compose_dir, linked_dir):
+def link(portainer_compose_dir, linked_dir):
     """
     Iterate through the Docker Compose files in Portainer's data directory.
     For each Compose file, in a second directory, create a subdirectory with 
@@ -37,30 +36,32 @@ def link_compose_files(portainer_compose_dir, linked_dir):
 
     for subdir in listdir(portainer_compose_dir):
         path_to_compose_file = f'{portainer_compose_dir}/{subdir}/docker-compose.yml'
-        app_name = utils.get_compose_attribute_value(
-            path_to_compose_file, 'container_name')
+        app_name = dockerutils.get_compose_attribute_value(
+            path_to_compose_file,
+            'container_name'
+        )
         stack_name = get_stack_name_from_app_name(app_name)
         path_to_stack_dir = f'{linked_dir}/{stack_name}'
 
-        print('-' * 80)
-        print(f'Checking for link to docker-compose.yml for {stack_name}.')
+        print()
+        print(f'Checking for link to docker-compose.yml for {stack_name}...')
 
         if not path.exists(path_to_stack_dir):
             mkdir(path_to_stack_dir)
-            print(f'Created {path_to_stack_dir}')
+            print(f'\tCreated {path_to_stack_dir}')
         else:
-            print(f'{path_to_stack_dir} already exists.')
+            print(f'\t{path_to_stack_dir} already exists.')
 
         path_to_link = f'{path_to_stack_dir}/docker-compose.yml'
 
         if not path.exists(path_to_link):
             new_link_count += 1
             link(path_to_compose_file, path_to_link)
-            print(f'Added link to {path_to_compose_file} in {path_to_link}.')
+            print(f'\tAdded link to {path_to_compose_file} in {path_to_link}.')
         else:
-            print(f'{path_to_link} already exists.')
+            print(f'\t{path_to_link} already exists.')
 
-        print('-' * 80)
+        print()
 
     if new_link_count > 1:
         print(f'Created {new_link_count} new links to Compose files.')
@@ -69,8 +70,4 @@ def link_compose_files(portainer_compose_dir, linked_dir):
     else:
         print('Nothing to update.')
 
-
-if __name__ == '__main__':
-    portainer_compose_dir = config('PORTAINER_COMPOSE_DIR')
-    local_repo = config('HOMELAB_COMPOSE_REPO')
-    link_compose_files(portainer_compose_dir, local_repo)
+    print()
