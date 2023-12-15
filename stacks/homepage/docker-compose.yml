@@ -1,0 +1,23 @@
+version: "3.3"
+
+networks:
+  socket_proxy:
+    name: socket_proxy
+
+services:
+  homepage:
+    image: ghcr.io/gethomepage/homepage:latest
+    container_name: homepage
+    ports:
+      - 3000:3000
+    environment:
+      - DOCKER_HOST=${SOCKET_PROXY_IP_ADDRESS}:${SOCKET_PROXY_PORT}
+    volumes:
+      - ${HOMEPAGE_CONFIG_DIR}:/app/config
+      - ${HOMEPAGE_IMAGE_DIR}:/app/public/icons
+      - /dev/mmcblk1p2/
+    networks:
+      - socket_proxy
+    deploy:
+      labels:
+        com.centurylinklabs.watchtower.depends-on: socket-proxy-homepage
