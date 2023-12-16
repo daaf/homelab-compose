@@ -8,8 +8,8 @@ services:
   watchtower:
     image: containrrr/watchtower:latest
     container_name: watchtower
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+    # volumes:
+    #   - /var/run/docker.sock:/var/run/docker.sock
     command: --debug --http-api-update
     environment:
       - DOCKER_HOST=tcp://${SOCKET_PROXY_IP_ADDRESS}:${SOCKET_PROXY_PORT}

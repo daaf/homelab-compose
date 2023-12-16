@@ -1,5 +1,9 @@
 version: '3'
 
+networks:
+  socket_proxy:
+    name: socket_proxy
+
 services: 
   portainer: 
     image: portainer/portainer-ce:latest
@@ -9,10 +13,14 @@ services:
       - no-new-privileges:true
     volumes:
       - /etc/localtime:/etc/localtime:ro
-      - /var/run/docker.sock:/var/run/docker.sock:ro
       - portainer_data:/data
     ports:
-      - 9443:9000
+      - ${PORTAINER_PORT}:9000
+    command: -H tcp://socket-proxy:${SOCKET_PROXY_PORT}
+    environment:
+      - DOCKER_HOST=tcp://${SOCKET_PROXY_IP_ADDRESS}:${SOCKET_PROXY_PORT}
+    networks:
+      - socket_proxy
 
 volumes:
   portainer_data:
